@@ -6,7 +6,6 @@ package com.tsp;
 public class City {
     int x ;
     int y;
-    int cuco = 2;
     public City(int x, int y){
         this.x = x;
         this.y = y;
