@@ -4,9 +4,9 @@ package com.tsp;
  * Created by Viktor on 12.5.2017..
  */
 public class City {
-    int x;
+    int x ;
     int y;
-
+    int cuco;
     public City(int x, int y){
         this.x = x;
         this.y = y;
