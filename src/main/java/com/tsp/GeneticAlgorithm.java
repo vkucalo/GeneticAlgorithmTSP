@@ -10,29 +10,34 @@ public class GeneticAlgorithm {
     static final int numberOfGenerations = 1000;
     static final int numberOfIndividuals = 100;
 
-    Individual best ;
+    Individual best;
 
     public GeneticAlgorithm() {
 
         Scanner unos = new Scanner(System.in);
-        int N = unos.nextInt();
-        City[] city = new City[N];
-        for (int i = 0; i < N; i++) {
-            city[i] = new City(unos.nextInt(), unos.nextInt());
-        }
+        int N = 7;
+        City[] city = new City[7];
+        city[0] = new City(2, 2);
+        city[1] = new City(3, 3);
+        city[2] = new City(4, 4);
+        city[3] = new City(5, 5);
+        city[4] = new City(6, 6);
+        city[5] = new City(1000, 1000);
+        city[6] = new City(100, 100);
 
+
+        //Initialize the population
         Population population = new Population(numberOfIndividuals, N, city);
         population.initializeRandom(numberOfIndividuals);
-        best = new Individual(population.findBest().dna.length, city);
+        best = new Individual(N, city);
         best.calculateFitness();
-        for(int i = 0; i < numberOfGenerations; i++){
-            if(population.findBest().fitness > best.fitness){
-                System.out.println("naso bolji : " + population.findBest().fitness);
-                best.dna = population.findBest().dna;
-
-                best.calculateFitness();
-            }
+        System.out.println(best.fitness);
+        for(int i = 0; i < 100; i++){
             population = crossover(city, population);
+            if(population.findBest().fitness > best.fitness){
+                best = population.findBest();
+            }
+
             System.out.println("the best : " + best.toString() + " fitness = " + best.fitness);
         }
 
@@ -40,51 +45,57 @@ public class GeneticAlgorithm {
 
     public Population crossover(City[] city, Population population) {
 
+        //Sort the population by fitness
         Collections.sort(population.population, new Comparator<Individual>() {
             @Override
             public int compare(Individual o1, Individual o2) {
-                if(o1.fitness < o2.fitness){
+                if(o1.fitness > o2.fitness){
                     return 1;
                 }
-                else if(o1.fitness > o2.fitness){
+                else if(o1.fitness < o2.fitness){
                     return -1;
                 }
                 return 0;
             }
         });
+
         //Select the best 50%
-        Population prezivjeli = new Population(numberOfIndividuals/2, population.dnaLength, city);
+        Population survivors = new Population(numberOfIndividuals/2, population.dnaLength, city);
         for(int i = 0; i < population.population.size()/2; i++){
-            prezivjeli.add(population.get(i));
+            survivors.add(population.get(i));
         }
-//        for (int i = 0; i < numberOfIndividuals/2; i++) {
-//            prezivjeli.add(population.get(((Arrays.binarySearch(normalizedFitness, Math.random())) * (-1))-1));
-//        }
+        //Determine which positions inside the DNA will be swapped
         ArrayList<Integer> positionsToSwap = new ArrayList<>();
-        for(int i = 0; i <(int) (city.length * 0.2); i++){
+        int possiblePairs = city.length / 2;
+        for(int i = 0; i < (possiblePairs + 1) * Math.random(); i++){
             int x = (int) (Math.random() * city.length);
-            if(positionsToSwap.contains(x)){
-                i--;
-                continue;
-            }
+            int y = (int) (Math.random() * city.length);
             positionsToSwap.add(x);
+            positionsToSwap.add(y);
 
         }
         Collections.shuffle(positionsToSwap);
-        for(int i = 0; i < prezivjeli.population.size(); i++){
-            prezivjeli.get(i).shuffleDna(positionsToSwap);
+        //Shuffle the DNA of the worse 50% of the population
+        for(int i = 0; i < survivors.population.size(); i++){
+            survivors.get(i).shuffleDna(positionsToSwap);
         }
-        prezivjeli.initializeRandom(numberOfIndividuals/2);
-        return prezivjeli;
+        //Add the better 50% back to the survivors
+        for(int i = population.population.size()/2; i < population.population.size() ; i++){
+            survivors.add(population.get(i));
+        }
+        mutate(survivors.population);
+        return survivors;
     }
 
 
     public void mutate(ArrayList<Individual> prezivjeli){
-        ArrayList<Integer> polozajMutacija = new ArrayList<>();
-        polozajMutacija.add((int) (Math.random() * prezivjeli.get(0).dna.length));
-        polozajMutacija.add((int) (Math.random() * prezivjeli.get(0).dna.length));
+        ArrayList<Integer> positionToMutate = new ArrayList<>();
+        positionToMutate.add((int) (Math.random() * prezivjeli.get(0).dna.length));
+        positionToMutate.add((int) (Math.random() * prezivjeli.get(0).dna.length));
         for(int i = 0; i < prezivjeli.size(); i++){
-            prezivjeli.get(i).shuffleDna(polozajMutacija);
+            if(Math.random()< 0.05){
+                prezivjeli.get(i).shuffleDna(positionToMutate);
+            }
         }
     }
     public static void main(String [] args){
