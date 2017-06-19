@@ -46,5 +46,6 @@ public class Population {
     }
     public void add(Individual i){
         population.add(i);
+        size++;
     }
 }
